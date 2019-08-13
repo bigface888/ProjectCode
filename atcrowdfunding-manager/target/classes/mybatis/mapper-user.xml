@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.atcrowdfunding.dao.UserDao" >
+    
+    <select id="pageQueryData" resultType="com.atguigu.atcrowdfunding.bean.User">
+        select
+            id,username,userpswd,telephone
+        from t_user
+        <where>
+        	ischeck=1
+            <if test="queryText != null">
+            and username like concat('%', #{queryText}, '%')
+            </if>
+        </where>
+        order by id
+        limit #{start}, #{size}
+    </select>
+    
+     <select id="queryRecordList" resultType="com.atguigu.atcrowdfunding.bean.LockRecordList">
+        select
+            id,username,telephone,lockname,visitetime
+        from t_lock_record_list
+        <where>
+            <if test="queryText != null">
+            and username like concat('%', #{queryText}, '%')
+            </if>
+        </where>
+        order by id
+        limit #{start}, #{size}
+    </select>
+    
+    <select id="queryAuthorityCheck" resultType="com.atguigu.atcrowdfunding.bean.TempAuthorithCheck">
+        select
+            id,username,telephone,lockname,applytime
+        from t_temp_authority_check
+        <where>
+        	  check_time is null
+            <if test="queryText != null">
+            and username like concat('%', #{queryText}, '%')
+            </if>
+        </where>
+        order by id
+        limit #{start}, #{size}
+    </select>
+     
+    <select id="queryCheckUser" resultType="com.atguigu.atcrowdfunding.bean.User">
+        select
+            *
+        from t_user
+        where ischeck = 0
+        order by id 
+        limit #{start}, #{size}
+    </select>
+    
+    <select id="pageQueryCount" resultType="int">
+        select
+            count(*)
+        from t_user
+        <where>
+        	ischeck=1
+            <if test="queryText != null">
+            and username like concat('%', #{queryText}, '%')
+            </if>
+        </where>
+    </select>
+    
+    <select id="queryUserByIdcard" resultType="com.atguigu.atcrowdfunding.bean.User">
+    select * from t_user where idcard =#{idcard}
+    </select>
+    
+    <select id="queryById" resultType="com.atguigu.atcrowdfunding.bean.User">
+    select id,username,userpswd,telephone,level from t_user where id=#{id}
+     </select>
+    
+     <select id="queryRecordListCount" resultType="int">
+        select
+            count(*)
+        from t_lock_record_list
+        <where>
+            <if test="queryText != null">
+            and username like concat('%', #{queryText}, '%')
+            </if>
+        </where>
+    </select>
+    
+    <select id="queryCheckUserCount" resultType="int">
+        select
+            count(*)
+        from t_user
+        <where>
+        	 ischeck=1
+            <if test="queryText != null">
+            and username like concat('%', #{queryText}, '%')
+            </if>
+        </where>
+    </select>
+    
+    <select id="queryAuthorityCheckCount" resultType="int">
+        select
+            count(*)
+        from t_temp_authority_check
+        <where>
+        	   check_time is null
+            <if test="queryText != null">
+            and username like concat('%', #{queryText}, '%')
+            </if>
+        </where>
+    </select>
+    
+    <select id="queryCheckCount" resultType="int">
+        select
+            count(*)
+        from t_user
+        where ischeck=1
+    </select>
+    
+    <select id="queryAuthorityCount" resultType="int">
+        select
+            count(*)
+        from t_temp_authority_check
+        where check_time is null
+    </select>
+    
+    <insert id="insertUser" parameterType="com.atguigu.atcrowdfunding.bean.User">
+        insert into t_user (
+            username, telephone, userpswd,ischeck
+        ) values (
+            #{username}, #{telephone}, #{userpswd},#{ischeck}
+        )
+        <selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="id">
+        	select LAST_INSERT_ID() AS id
+        </selectKey>
+    </insert>
+    
+    <update id="wxInsertUser">
+        update t_user set level=#{level},ischeck=#{ischeck},wxid=#{wxid} where
+        id=#{id}
+    </update>
+    
+      <insert id="wxInsertApplyUser">
+        insert into t_temp_authority_check (
+           username, telephone, lockname, applytime
+        ) values (
+            #{username}, #{telephone}, #{lockname}, #{applytime}
+        )
+    </insert>
+    
+    <insert id="insertUserRoles">
+        insert into t_user_role ( userid, roleid ) values 
+        <foreach collection="roleids" item="roleid" separator=",">
+        ( #{userid}, #{roleid} )
+        </foreach>
+    </insert>
+    
+    <update id="updateUser">
+        update t_user 
+        set username=#{username},
+        userpswd= #{userpswd},
+        telephone=#{telephone}
+        where id = #{id}
+    </update>
+    
+    <update id="updateLoginUser">
+        update t_user 
+        set 
+        username=#{username},
+        userpswd= #{userpswd},
+        telephone=#{telephone}
+        where id = #{id}
+    </update>
+    
+    <update id="updateTac">
+        update t_temp_authority_check
+        set check_time=#{checktime},check_result=#{checkresult}
+        where id=#{id}
+    </update>
+    
+    
+    
+    <delete id="deleteUserById">
+        delete from t_user where id = #{id}
+    </delete>
+    
+    <delete id="deleteUsers">
+        delete from t_user where id in 
+        <foreach collection="userids" item="userid" open="(" close=")" separator=",">
+        #{userid}
+        </foreach>
+    </delete>
+    
+     <delete id="deleteLrls">
+        delete from t_lock_record_list where id in 
+        <foreach collection="lrlids" item="lrlid" open="(" close=")" separator=",">
+        #{lrlid}
+        </foreach>
+    </delete>
+    
+    <delete id="deleteUserRoles">
+        delete from t_user_role where userid = #{userid} and roleid in 
+        <foreach collection="roleids" item="roleid" open="(" close=")" separator=",">
+        #{roleid}
+        </foreach>
+    </delete>
+</mapper>
